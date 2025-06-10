@@ -10,7 +10,7 @@ import Logo from "../../../logo.svg"
 
 export default function SignUpPage() {
   return (
-    <div className="max-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image src="/images/onboarding/slide2.png" alt="Beach community" fill className="object-cover" priority />

@@ -2,9 +2,10 @@
 
 import React from "react"
 import { UserButton, useUser } from "@clerk/nextjs"
-import { Waves, MapPin, Camera, Users } from "lucide-react"
+import { Waves, MapPin, Camera, Users, Search } from "lucide-react"
 import { Button } from "../components/ui/button"
 import MapComponent from "../components/MapComponent"
+import SearchSection from "../components/SearchSection"
 import Logo from "../../logo.svg"
 
 export default function DashboardPage() {
@@ -26,7 +27,7 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="max-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-teal-100 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,13 +44,16 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="p-6 md:grid-cols-3 gap-5 min-h-full grid grid-cols-1">
+        <SearchSection />
+        <div className="lg:col-span-2 md:col-span-2">
         <MapComponent
-          className="h-96 rounded-lg shadow-lg"
+          className="rounded-lg shadow-lg"
           lat={userLocation.lat}
           lng={userLocation.lng}
           zoom={17}
         />
+        </div>
       </main>
     </div>
   )

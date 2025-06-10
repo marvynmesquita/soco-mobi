@@ -10,7 +10,7 @@ import Logo from "../../../logo.svg"
 
 export default function LoginPage() {
   return (
-    <div className="max-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image src="/images/onboarding/slide3.png" alt="Coastal sunset" fill className="object-cover" priority />

@@ -7,7 +7,7 @@ const containerStyle = {
   height: '70vh'
 };
 
-const GoogleMapRouteComponent = ( {lat, lng, destination, origin, zoom}: any) => {
+const GoogleMapRouteComponent = ( {lat, lng, destination, origin, zoom, className}: any) => {
   const [directions, setDirections] = React.useState(null);
   const [travelTime, setTravelTime] = React.useState(null);
   const center = { lat: lat, lng: lng };
@@ -32,6 +32,7 @@ const GoogleMapRouteComponent = ( {lat, lng, destination, origin, zoom}: any) =>
         zoom={zoom}
         origin={origin}
         marker={center}
+        className={className}
       >
         <Marker position={center} />
       </GoogleMap>
