@@ -2,13 +2,15 @@
 
 import { SignUp } from "@clerk/nextjs"
 import Image from "next/image"
-import { ArrowLeft, Waves } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { Button } from "../../components/ui/button"
 import Link from "next/link"
 
+import Logo from "../../../logo.svg"
+
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="max-h-screen relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image src="/images/onboarding/slide2.png" alt="Beach community" fill className="object-cover" priority />
@@ -33,8 +35,8 @@ export default function SignUpPage() {
           <div className="w-full max-w-md">
             {/* Brand Section */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-500/90 backdrop-blur-sm mb-4">
-                <Waves className="w-8 h-8 text-white" />
+              <div className="inline-flex items-center justify-center w-16 h-16">
+                <Logo className="w-16 h-16"/>
               </div>
               <h1 className="text-3xl font-bold text-white mb-2">Olá!</h1>
               <p className="text-teal-100">Cadastre-se para podermos continuar</p>

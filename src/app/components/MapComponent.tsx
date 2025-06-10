@@ -7,23 +7,10 @@ const containerStyle = {
   height: '70vh'
 };
 
-const center = {
-    lat: -22.8714018,
-    lng: - 42.689089
-}
-const origin = {
-  lat: 37.437041393899676,
-  lng: -4.191635586788259
-};
-
-const destination = {
-  lat: 37.440575591901045,
-  lng: -4.231433159434073
-};
-
-const GoogleMapRouteComponent = () => {
+const GoogleMapRouteComponent = ( {lat, lng, destination, origin, zoom}: any) => {
   const [directions, setDirections] = React.useState(null);
   const [travelTime, setTravelTime] = React.useState(null);
+  const center = { lat: lat, lng: lng };
 
   const directionsCallback = (response) => {
     if (response !== null) {
@@ -42,8 +29,11 @@ const GoogleMapRouteComponent = () => {
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={center}
-        zoom={10}
+        zoom={zoom}
+        origin={origin}
+        marker={center}
       >
+        <Marker position={center} />
       </GoogleMap>
     </LoadScript>
   );

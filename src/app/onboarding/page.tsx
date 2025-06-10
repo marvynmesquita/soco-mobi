@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Navigation } from "swiper/modules";
-import { ChevronLeft, ChevronRight, MapPin, Camera, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../components/ui/button";
 import Image from "next/image";
+
+import logo from "../../logo.svg";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -14,21 +16,21 @@ import "swiper/css/navigation";
 const onboardingSlides = [
     {
         id : 1,
-        icon : MapPin,
+        icon : logo,
         title : "Bem-vindo(a) ao Socó!",
         description : "Mova-se livremente por Saquarema",
         image : "/images/onboarding/slide1.png"
     },
     {
         id : 2,
-        icon : Camera,
+        icon : logo,
         title : "Capture momentos incríveis",
         description : "Registre suas aventuras e compartilhe com amigos",
         image : "/images/onboarding/slide2.png"
     },
     {
         id : 3,
-        icon : Users,
+        icon : logo,
         title : "Pronto para embarcar?",
         description : "Embarque nessa jornada com a gente",
         image : "/images/onboarding/slide3.png"
@@ -63,7 +65,7 @@ export default function OnboardingScreen() {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="max-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center p-6 pb-0 relative z-10">
@@ -118,8 +120,8 @@ export default function OnboardingScreen() {
                   {/* Content */}
                   <div className="relative z-10 flex flex-col items-center justify-end text-center h-full p-8 pb-12">
                     {/* Icon */}
-                    <div className="w-16 h-16 rounded-full bg-teal-500/90 backdrop-blur-sm flex items-center justify-center mb-6">
-                      <slide.icon className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 flex items-center justify-center mb-6">
+                      <slide.icon className="w-16 h-16 text-white" />
                     </div>
 
                     {/* Text Content */}
