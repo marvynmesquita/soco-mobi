@@ -65,8 +65,8 @@ export default function OnboardingScreen() {
     }
 
     return (
-        <div className="max-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="max-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="w-full mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center p-6 pb-0 relative z-10">
           <div className="flex space-x-2">
