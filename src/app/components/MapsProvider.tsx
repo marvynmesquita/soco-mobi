@@ -10,7 +10,7 @@ export default function MapsProvider({
 }) {
   return (
     <APIProvider
-      apiKey={process.env.NEXT_PUBLIC_Maps_API_KEY!}
+      apiKey={process.env.NEXT_PUBLIC_MAPS_API_KEY!}
       libraries={['places']}
     >
       {children}
