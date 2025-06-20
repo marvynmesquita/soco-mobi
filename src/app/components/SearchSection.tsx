@@ -48,7 +48,7 @@ export default function DashboardPage() {
 
       const lat = place.geometry.location.lat;
       const lng = place.geometry.location.lng;
-      const api = process.env.NEXT_BACKEND_URL || "http://localhost:3000";
+      const api = "http://localhost:3001";
 
       try {
         const response = await fetch(`${api}/api/linhas-por-proximidade?lat=${lat}&lon=${lng}`);
