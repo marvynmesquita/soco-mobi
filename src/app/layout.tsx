@@ -15,6 +15,7 @@ import {
 const inter = Inter({ subsets: ["latin"] });
 
 import { ptBR, enUS } from "@clerk/localizations";
+import MapsProvider from "./components/MapsProvider";
 
 const userLanguage = navigator.language || "pt-BR";
 
@@ -32,13 +33,15 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider localization={localization}>
-      <html lang="pt-BR" suppressHydrationWarning>
-        <body className={inter.className}>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-            {children}
-          </ThemeProvider>
-        </body>
-      </html>
-      </ClerkProvider>
+      <MapsProvider>
+        <html lang="pt-BR" suppressHydrationWarning>
+          <body className={inter.className}>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+              {children}
+            </ThemeProvider>
+          </body>
+        </html>
+      </MapsProvider>
+    </ClerkProvider>
   );
 }

@@ -32,7 +32,7 @@ export default function SignUpPage() {
 
         {/* Main Content */}
         <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md flex flex-col items-center">
             {/* Brand Section */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16">
@@ -43,12 +43,28 @@ export default function SignUpPage() {
             </div>
 
             {/* Clerk Sign Up Component */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl flex-initial">
-              <SignUp
-                redirectUrl="/dashboard"
-                signInUrl="/login"
-              />
-            </div>
+            <SignUp
+              redirectUrl="/dashboard"
+              signInUrl="/login"
+              appearance={{
+                elements: {
+                  rootBox: "w-full",
+                  card: "shadow-2xl rounded-2xl bg-white/95 backdrop-blur-sm w-full",
+                  headerTitle: "text-2xl font-bold text-gray-900 text-center mb-2",
+                  headerSubtitle: "text-gray-600 text-center mb-6",
+                  socialButtonsBlockButton:
+                    "bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors",
+                  socialButtonsBlockButtonText: "font-medium",
+                  dividerLine: "bg-gray-300",
+                  dividerText: "text-gray-500 text-sm",
+                  formFieldInput:
+                    "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors",
+                  formFieldLabel: "text-gray-700 font-medium mb-2",
+                  formButtonPrimary:
+                    "bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors focus:outline-none focus:ring focus:ring-teal-300",
+                },
+              }}
+            />
         </div>
       </div>
       </div>

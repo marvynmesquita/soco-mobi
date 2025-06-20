@@ -32,7 +32,7 @@ export default function LoginPage() {
 
         {/* Main Content */}
         <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-md justify-center">
+          <div className="w-full max-w-md flex flex-col items-center">
             {/* Brand Section */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16">
@@ -43,14 +43,13 @@ export default function LoginPage() {
             </div>
 
             {/* Clerk Sign In Component */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl min-w-fit">
-              <SignIn
+            <SignIn
                 redirectUrl="/dashboard"
                 signUpUrl="/sign-up"
                 appearance={{
                   elements: {
                     rootBox: "w-full",
-                    card: "bg-transparent shadow-none",
+                    card: "shadow-2xl rounded-2xl bg-white/95 backdrop-blur-sm w-full",
                     headerTitle: "text-2xl font-bold text-gray-900 text-center mb-2",
                     headerSubtitle: "text-gray-600 text-center mb-6",
                     socialButtonsBlockButton:
@@ -66,7 +65,6 @@ export default function LoginPage() {
                   },
                 }}
               />
-            </div>
         </div>
       </div>
       </div>

@@ -1,60 +1,81 @@
-"use client"
+"use client";
 
-import React from "react"
-import { UserButton, useUser } from "@clerk/nextjs"
-import { Waves, MapPin, Camera, Users, Search } from "lucide-react"
-import { Button } from "../components/ui/button"
-import MapComponent from "../components/MapComponent"
-import SearchSection from "../components/SearchSection"
-import Logo from "../../logo.svg"
+import React, { useState, useEffect } from "react";
+import { UserButton } from "@clerk/nextjs";
+import MapComponent from "../components/MapComponent";
+import SearchSection from "../components/SearchSection";
+import type { Place } from "@googlemaps/google-maps-services-js";
 
 export default function DashboardPage() {
-  const { user } = useUser()
-  const [ userLocation, setUserLocation ] = React.useState({lat: -22.9292, lng: -42.5099})
+  const [userLocation, setUserLocation] = useState({ lat: -22.8922, lng: -42.4768 });
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  
+  // O viewport do mapa agora é um estado separado para podermos controlá-lo
+  const [viewport, setViewport] = useState({
+    center: userLocation,
+    zoom: 15,
+  });
 
-  React.useEffect(() => { 
-    if ('geolocation' in navigator) {
+  // Efeito para obter a localização do usuário (lógica mantida)
+  useEffect(() => {
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        setUserLocation({
+        const newLocation = {
           lat: position.coords.latitude,
-          lng: position.coords.longitude
-        })
-        console.log("User location:", position.coords.latitude, position.coords.longitude)
-      }, (error) => {
-        console.error("Error getting user location:", error)
-      })
+          lng: position.coords.longitude,
+        };
+        setUserLocation(newLocation);
+        // Apenas atualiza o mapa para a localização do usuário se nenhum lugar foi pesquisado
+        if (!selectedPlace) {
+          setViewport({ center: newLocation, zoom: 15 });
+        }
+      });
     }
-  }, [])
+  }, [selectedPlace]);
+
+  // Callback para quando um lugar é selecionado na busca
+  const handlePlaceSelect = (place: Place | null) => {
+    setSelectedPlace(place);
+    if (place?.geometry?.location) {
+      setViewport({
+        center: place.geometry.location,
+        zoom: 15,
+      });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-teal-100 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full mr-3">
-                <Logo className="w-8 h-8 text-white" />
-              </div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Socó</h1>
-            </div>
+    // O container principal agora é 'relative' para posicionar os filhos sobre ele
+    <div className="relative min-h-screen">
+      {/* O mapa agora ocupa todo o espaço, posicionado absolutamente no fundo */}
+      <div className="absolute inset-0 z-0">
+        <MapComponent
+          center={viewport.center}
+          zoom={viewport.zoom}
+          selectedPlace={selectedPlace}
+          userLocation={userLocation} // Passando a localização do usuário para um marcador separado
+        />
+      </div>
+
+      {/* Container para a UI sobreposta. Usamos z-10 para ficar na frente do mapa */}
+      {/* pointer-events-none permite cliques "através" do container, no mapa */}
+      <div className="absolute inset-0 z-10 flex flex-col p-4 sm:p-6 pointer-events-none">
+        {/* Header flutuante */}
+        <header className="flex justify-end w-full pointer-events-auto">
+          <div className="bg-white dark:bg-gray-800 p-1.5 rounded-full shadow-lg">
             <UserButton afterSignOutUrl="/" />
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="p-6 md:grid-cols-3 gap-5 min-h-full grid grid-cols-1">
-        <SearchSection />
-        <div className="lg:col-span-2 md:col-span-2">
-        <MapComponent
-          className="rounded-lg shadow-lg"
-          lat={userLocation.lat}
-          lng={userLocation.lng}
-          zoom={17}
-        />
+        {/* Corpo principal da UI */}
+        <div className="flex-1 flex flex-col justify-start mt-4">
+          {/* A seção de busca agora é um card flutuante */}
+          {/* pointer-events-auto torna apenas este elemento clicável */}
+          <div className="w-full max-w-md mx-auto pointer-events-auto">
+            <SearchSection onPlaceSelect={handlePlaceSelect} />
+          </div>
         </div>
-      </main>
+      </div>
     </div>
-  )
+  );
 }
