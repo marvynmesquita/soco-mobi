@@ -14,10 +14,10 @@ interface LineResultsProps {
 
 export default function LineResults({ loading, lines }: LineResultsProps) {
   return (
-    // Card para exibir os resultados
-    <div className="bg-white dark:bg-gray-800 mt-4 p-4 rounded-lg shadow-2xl">
+    // Removido o card de fundo para integrar com o painel principal
+    <div className="mt-4">
       {loading && (
-        <div className="flex items-center justify-center text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-center text-gray-500 dark:text-gray-400 py-4">
           <LoaderCircle className="animate-spin h-5 w-5 mr-3" />
           Buscando linhas...
         </div>

@@ -2,21 +2,20 @@
 
 import { useRef, useEffect } from 'react';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
-import { Search } from 'lucide-react'; // 1. Importar o ícone de busca
+import { Search } from 'lucide-react';
 
 interface SearchSectionProps {
-  onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void;
+  onDestinationSelect: (place: google.maps.places.PlaceResult | null) => void;
+  destination: google.maps.places.PlaceResult | null;
 }
 
-// O componente RouteIndicator foi removido.
-
-export default function SearchSection({ onPlaceSelect }: SearchSectionProps) {
+export default function SearchSection({ onDestinationSelect, destination }: SearchSectionProps) {
   const places = useMapsLibrary('places');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const destinationInputRef = useRef<HTMLInputElement>(null);
+  const destinationAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
-    if (!places || !inputRef.current) return;
+    if (!places || !destinationInputRef.current) return;
 
     const saquaremaBounds = {
       north: -22.84,
@@ -31,26 +30,35 @@ export default function SearchSection({ onPlaceSelect }: SearchSectionProps) {
       strictBounds: true,
     };
 
-    autocompleteRef.current = new places.Autocomplete(inputRef.current, options);
-    const listener = autocompleteRef.current.addListener('place_changed', () => {
-      onPlaceSelect(autocompleteRef.current?.getPlace() || null);
+    destinationAutocompleteRef.current = new places.Autocomplete(destinationInputRef.current, options);
+    const destinationListener = destinationAutocompleteRef.current.addListener('place_changed', () => {
+      onDestinationSelect(destinationAutocompleteRef.current?.getPlace() || null);
     });
 
-    return () => listener.remove();
-  }, [places, onPlaceSelect]);
+    return () => {
+        destinationListener.remove();
+    };
+  }, [places, onDestinationSelect]);
+
+  // Atualiza o valor do input quando um destino é selecionado no mapa
+  useEffect(() => {
+    if (destinationInputRef.current) {
+        destinationInputRef.current.value = destination?.formatted_address || destination?.name || '';
+    }
+  }, [destination]);
 
   return (
-    // O layout foi simplificado para alinhar o ícone e o input
-    <div className="bg-teal-700 p-3 rounded-lg shadow-2xl flex items-center">
-      {/* 2. Substituir o RouteIndicator pelo ícone de Search */}
-      <Search className="h-6 w-6 text-teal-300 mr-3 flex-shrink-0" />
-      
-      {/* 3. Manter apenas o input de destino */}
-      <input
-        ref={inputRef}
-        placeholder="Vai para onde?"
-        className="w-full bg-transparent text-white placeholder-teal-200 focus:outline-none"
-      />
+    <div>
+        <h2 className="text-2xl font-bold mb-4 text-white">Para onde vamos?</h2>
+        <div className="flex items-center gap-3 p-3 bg-gray-700 rounded-lg">
+            <Search className="h-5 w-5 text-teal-400" />
+            <input 
+                ref={destinationInputRef}
+                placeholder="Procure seu destino..."
+                className="w-full bg-transparent focus:outline-none text-white placeholder-gray-400"
+                onFocus={(e) => e.target.select()} // Seleciona o texto ao focar para facilitar a troca
+            />
+        </div>
     </div>
   );
 }

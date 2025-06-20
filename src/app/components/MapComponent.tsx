@@ -10,30 +10,30 @@ interface MapComponentProps {
   selectedPlace: Place | null;
   userLocation: google.maps.LatLngLiteral;
   className?: string;
+  onMapClick?: (e: google.maps.MapMouseEvent) => void;
 }
 
-export default function MapComponent({ center, zoom, selectedPlace, userLocation, className }: MapComponentProps) {
+export default function MapComponent({ center, zoom, selectedPlace, userLocation, styleClass, onMapClick }: MapComponentProps) {
   return (
-    <div className={`w-full h-full ${className}`}>
+    <div className={`${styleClass}`}>
       <Map
         style={{ width: '100%', height: '100%' }}
         center={center}
         zoom={zoom}
         gestureHandling={'greedy'}
         disableDefaultUI={true}
-        mapId="SUA_MAP_ID_CUSTOMIZADA" // Opcional: Para um estilo de mapa customizado
+        mapId="SUA_MAP_ID_CUSTOMIZADA"
+        onClick={onMapClick}
       >
-        {/* Marcador para a localização ATUAL do usuário (agora um pino teal) */}
         {userLocation && (
           <AdvancedMarker position={userLocation}>
-            <div className="w-5 h-5 bg-teal-500 rounded-full border-2 border-white shadow-md"></div>
+            <div className="w-5 h-5 bg-blue-500 rounded-full border-2 border-white shadow-md"></div>
           </AdvancedMarker>
         )}
         
-        {/* Marcador para o local PESQUISADO, se existir (agora um pino teal mais escuro) */}
         {selectedPlace?.geometry?.location && (
           <AdvancedMarker position={selectedPlace.geometry.location}>
-            <MapPin className="text-teal-700 w-8 h-8" />
+            <MapPin className="text-teal-500 w-8 h-8" />
           </AdvancedMarker>
         )}
       </Map>
