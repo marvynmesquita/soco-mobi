@@ -1,56 +1,96 @@
-'use client';
+"use client";
 
-import { useRef, useEffect } from 'react';
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
-import { Search } from 'lucide-react'; // 1. Importar o ícone de busca
+import React, { useState, useEffect } from "react";
+import { UserButton } from "@clerk/nextjs";
+import MapComponent from "../components/MapComponent";
+import SearchSection from "../components/SearchSection";
+import LineResults from "../components/LineResults"; // 1. Importar o novo componente de resultados
+import type { Place } from "@googlemaps/google-maps-services-js";
 
-interface SearchSectionProps {
-  onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void;
-}
+// Definimos um tipo para a resposta da nossa API de linhas
+type BusLine = {
+  id_linha: number;
+  nome_linha: string;
+};
 
-// O componente RouteIndicator foi removido.
-
-export default function SearchSection({ onPlaceSelect }: SearchSectionProps) {
-  const places = useMapsLibrary('places');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+export default function DashboardPage() {
+  const [userLocation, setUserLocation] = useState({ lat: -22.8922, lng: -42.4768 });
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [viewport, setViewport] = useState({ center: userLocation, zoom: 15 });
+  
+  // 2. Novos estados para gerenciar os resultados da busca e o carregamento
+  const [nearbyLines, setNearbyLines] = useState<BusLine[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!places || !inputRef.current) return;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setUserLocation(newLocation);
+        if (!selectedPlace) {
+          setViewport({ center: newLocation, zoom: 15 });
+        }
+      });
+    }
+  }, [selectedPlace]);
 
-    const saquaremaBounds = {
-      north: -22.84,
-      south: -22.98,
-      west: -42.72,
-      east: -42.39,
-    };
+  // 3. Atualizar a função para chamar o backend
+  const handlePlaceSelect = async (place: Place | null) => {
+    setSelectedPlace(place);
+    setNearbyLines([]); // Limpa os resultados anteriores
 
-    const options = {
-      fields: ['geometry', 'name', 'formatted_address'],
-      bounds: saquaremaBounds,
-      strictBounds: true,
-    };
+    if (place?.geometry?.location) {
+      setViewport({ center: place.geometry.location, zoom: 15 });
+      setIsLoading(true); // Ativa o estado de carregamento
 
-    autocompleteRef.current = new places.Autocomplete(inputRef.current, options);
-    const listener = autocompleteRef.current.addListener('place_changed', () => {
-      onPlaceSelect(autocompleteRef.current?.getPlace() || null);
-    });
+      const lat = place.geometry.location.lat;
+      const lng = place.geometry.location.lng;
+      const api = "http://localhost:3001";
 
-    return () => listener.remove();
-  }, [places, onPlaceSelect]);
+      try {
+        const response = await fetch(`${api}/api/linhas-por-proximidade?lat=${lat}&lon=${lng}`);
+        const linesData: BusLine[] = await response.json();
+        setNearbyLines(linesData);
+      } catch (error) {
+        console.error("Erro ao buscar linhas de ônibus:", error);
+      } finally {
+        setIsLoading(false); // Desativa o estado de carregamento
+      }
+    }
+  };
 
   return (
-    // O layout foi simplificado para alinhar o ícone e o input
-    <div className="bg-teal-700 p-3 rounded-lg shadow-2xl flex items-center">
-      {/* 2. Substituir o RouteIndicator pelo ícone de Search */}
-      <Search className="h-6 w-6 text-teal-300 mr-3 flex-shrink-0" />
-      
-      {/* 3. Manter apenas o input de destino */}
-      <input
-        ref={inputRef}
-        placeholder="Vai para onde?"
-        className="w-full bg-transparent text-white placeholder-teal-200 focus:outline-none"
-      />
+    <div className="relative min-h-screen">
+      <div className="absolute inset-0 z-0">
+        <MapComponent
+          center={viewport.center}
+          zoom={viewport.zoom}
+          selectedPlace={selectedPlace}
+          userLocation={userLocation}
+        />
+      </div>
+
+      <div className="absolute inset-0 z-10 flex flex-col p-4 sm:p-6 pointer-events-none">
+        <header className="flex justify-end w-full pointer-events-auto">
+          <div className="bg-white dark:bg-gray-800 p-1.5 rounded-full shadow-lg">
+            <UserButton afterSignOutUrl="/" />
+          </div>
+        </header>
+
+        <div className="flex-1 flex flex-col justify-start mt-4">
+          <div className="w-full max-w-md mx-auto pointer-events-auto">
+            <SearchSection onPlaceSelect={handlePlaceSelect} />
+            
+            {/* 4. Renderizar o componente de resultados */}
+            {(isLoading || selectedPlace) && (
+              <LineResults loading={isLoading} lines={nearbyLines} />
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
