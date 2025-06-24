@@ -12,6 +12,7 @@
     "@clerk/localizations": "^3.16.4",
     "@clerk/nextjs": "^6.21.0",
     "@googlemaps/google-maps-services-js": "^3.4.1",
+    "@googlemaps/js-api-loader": "^1.16.8",
     "@radix-ui/react-slot": "^1.2.3",
     "@svgr/webpack": "^8.1.0",
     "@types/google.maps": "^3.58.1",
@@ -22,6 +23,7 @@
     "next-themes": "^0.4.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "sooner": "^1.1.4",
     "swiper": "^11.2.8",
     "tailwind-merge": "^3.3.0"
   },

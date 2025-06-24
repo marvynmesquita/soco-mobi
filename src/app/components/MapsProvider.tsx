@@ -1,8 +1,8 @@
-"use client"; // ESSA LINHA É A MAIS IMPORTANTE!
+// src/app/components/MapsProvider.tsx
+"use client";
 
 import { APIProvider } from '@vis.gl/react-google-maps';
 
-// Este é um Client Component que encapsula o APIProvider.
 export default function MapsProvider({
   children
 }: {
@@ -11,7 +11,8 @@ export default function MapsProvider({
   return (
     <APIProvider
       apiKey={process.env.NEXT_PUBLIC_Maps_API_KEY!}
-      libraries={['places']}
+      // Adicionado 'geometry' para decodificar polylines
+      libraries={['places', 'geocoding', 'routes', 'geometry']}
     >
       {children}
     </APIProvider>

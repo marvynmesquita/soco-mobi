@@ -5,130 +5,143 @@ import { UserButton } from "@clerk/nextjs";
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import MapComponent from "../components/MapComponent";
 import SearchSection from "../components/SearchSection";
+import TripDetailsCard from "../components/TripDetailsCard";
+import { LoaderCircle } from "lucide-react";
 import type { Place } from "@googlemaps/google-maps-services-js";
-import LineResults from "../components/LineResults";
-
-type BusLine = {
-    id_linha: number;
-    nome_linha: string;
-};
 
 export default function DashboardPage() {
-  const [userLocation, setUserLocation] = useState({ lat: -22.8922, lng: -42.4768 });
+  const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [bounds, setBounds] = useState<google.maps.LatLngBounds | null>(null);
   
-  const [viewport, setViewport] = useState({
-    center: userLocation,
-    zoom: 15,
-  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [showTripDetails, setShowTripDetails] = useState(false);
+  const [tripInfo, setTripInfo] = useState<any>(null);
+  const [tripSegment, setTripSegment] = useState<google.maps.LatLngLiteral[] | undefined>(undefined);
 
-  const [lines, setLines] = useState<BusLine[]>([]);
-  const [loading, setLoading] = useState(false);
-  
   const geocoding = useMapsLibrary('geocoding');
+  const core = useMapsLibrary('core');
   const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
 
+  useEffect(() => { if (geocoding) setGeocoder(new geocoding.Geocoder()); }, [geocoding]);
+  
   useEffect(() => {
-    if (geocoding) {
-        setGeocoder(new geocoding.Geocoder());
-    }
-  }, [geocoding]);
-
-
-  useEffect(() => {
-    if (navigator.geolocation) {
+    if (navigator.geolocation && core && !userLocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        const newLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
+        const newLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
         setUserLocation(newLocation);
-        if (!selectedPlace) {
-          setViewport({ center: newLocation, zoom: 15 });
+        if (!bounds) {
+          const newBounds = new core.LatLngBounds();
+          newBounds.extend(newLocation);
+          setBounds(newBounds);
         }
       });
     }
-  }, [selectedPlace]);
+  }, [bounds, core, userLocation]);
 
-  const handleDestinationSelect = useCallback((place: Place | null) => {
-    setSelectedPlace(place);
-    if (place?.geometry?.location) {
-      setViewport({
-        center: place.geometry.location,
-        zoom: 15,
-      });
-
-      setLoading(true);
-      setLines([]);
-      setTimeout(() => {
-        const mockLines: BusLine[] = [
-          { id_linha: 1, nome_linha: "BACAXÁ X VILATUR" },
-          { id_linha: 2, nome_linha: "SAQUAREMA X SAMPAIO" },
-        ];
-        setLines(mockLines);
-        setLoading(false);
-      }, 1500);
-    } else {
-      setLines([]);
-      setSelectedPlace(null);
+  const resetState = useCallback(() => {
+    setShowTripDetails(false);
+    setTripInfo(null);
+    setTripSegment(undefined);
+    setSelectedPlace(null);
+    setBounds(null);
+    if (userLocation && core) {
+      const newBounds = new core.LatLngBounds();
+      newBounds.extend(userLocation);
+      setBounds(newBounds);
     }
-  }, []);
+  }, [userLocation, core]);
 
-  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
-      if (!geocoder || !e.detail.latLng) return;
+  const handlePlaceSelect = useCallback(async (place: Place | null) => {
+    resetState();
+    setSelectedPlace(place);
+
+    if (userLocation && place?.geometry?.location && typeof place.geometry.location.lat === 'function' && core) {
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+      const toAddress = place.formatted_address || `${lat},${lng}`;
       
-      geocoder.geocode({ location: e.detail.latLng }, (results, status) => {
-          if (status === 'OK' && results && results[0]) {
-              const placeResult: Place = {
-                  formatted_address: results[0].formatted_address,
-                  geometry: {
-                    location: results[0].geometry.location,
-                  },
-                  name: results[0].formatted_address.split(',')[0],
-              };
-              handleDestinationSelect(placeResult);
-          } else {
-              console.error(`Geocode falhou pelo seguinte motivo: ${status}`);
+      setIsLoading(true);
+
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+        const encodedAddress = encodeURIComponent(toAddress);
+
+        const tripResponse = await fetch(`${backendUrl}/planner/trip?fromLat=${userLocation.lat}&fromLng=${userLocation.lng}&toAddress=${encodedAddress}`);
+        if (!tripResponse.ok) throw new Error(`Planner API failed: ${tripResponse.statusText}`);
+        const tripData = await tripResponse.json();
+        
+        if (tripData.plan?.line?.number) {
+          const plan = tripData.plan;
+          setTripInfo(plan);
+          
+          const routeResponse = await fetch(`${backendUrl}/lines/${plan.line.number}/route`);
+          if (!routeResponse.ok) throw new Error(`Route API failed: ${routeResponse.statusText}`);
+          const routeData = await routeResponse.json();
+
+          if (routeData.stops && plan.boardingStop?.name && plan.disembarkingStop?.name) {
+              const startIndex = routeData.stops.findIndex(s => s.name === plan.boardingStop.name);
+              const endIndex = routeData.stops.findIndex(s => s.name === plan.disembarkingStop.name);
+
+              if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+                  const segment = routeData.stops.slice(startIndex, endIndex + 1).map(s => ({ lat: s.latitude, lng: s.longitude }));
+                  setTripSegment(segment);
+
+                  const newBounds = new core.LatLngBounds();
+                  newBounds.extend(userLocation); // Ponto de partida do usuário
+                  newBounds.extend({ lat, lng });   // Destino final
+                  setBounds(newBounds);
+              }
           }
-      });
-
-  }, [geocoder, handleDestinationSelect]);
-
+        } else {
+          setTripInfo({ message: tripData.message || "Nenhuma rota encontrada." });
+        }
+        setShowTripDetails(true);
+      } catch (error) {
+        console.error("Erro ao buscar plano de viagem:", error);
+        setTripInfo({ error: "Não foi possível carregar os detalhes." });
+        setShowTripDetails(true);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [userLocation, core, resetState]);
 
   return (
-    <div className="relative min-h-screen">
-      <div className="absolute inset-0 z-0 h-full">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <div className="h-1/2 w-full relative">
         <MapComponent
-          center={viewport.center}
-          zoom={viewport.zoom}
+          initialCenter={{ lat: -22.9, lng: -42.5 }}
+          initialZoom={14}
           selectedPlace={selectedPlace}
           userLocation={userLocation}
-          onMapClick={handleMapClick}
-          styleClass="w-full h-7/12"
+          tripSegment={tripSegment}
+          tripInfo={tripInfo}
+          boundsToFit={bounds}
+          className="w-full h-full"
         />
-      </div>
-
-      <header className="absolute top-0 right-0 z-20 p-4 sm:p-6">
-        <div className="bg-white dark:bg-gray-800 p-1.5 rounded-full shadow-lg">
-          <UserButton afterSignOutUrl="/" />
-        </div>
-      </header>
-
-      {/* Painel Inferior */}
-      <div className="absolute bottom-0 left-0 right-0 z-10">
-        <div className="bg-white dark:bg-gray-800 rounded-t-2xl shadow-2xl p-4 sm:p-6 h-[55vh] overflow-y-auto">
-            <div className="max-w-md mx-auto">
-                <SearchSection 
-                    onDestinationSelect={handleDestinationSelect}
-                    destination={selectedPlace}
-                />
-                <div className="mt-4">
-                  {(loading || selectedPlace) && (
-                      <LineResults loading={loading} lines={lines} />
-                  )}
-                </div>
+        <header className="absolute top-0 right-0 z-20 p-4">
+            <div className="bg-white dark:bg-gray-800 p-1.5 rounded-full shadow-lg">
+                <UserButton afterSignOutUrl="/" />
             </div>
-        </div>
+        </header>
+      </div>
+      
+      <div className="flex-1 w-full bg-white dark:bg-gray-800 overflow-y-auto p-4 border-t-2 border-gray-200 dark:border-gray-700">
+          <div className="max-w-md mx-auto">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full text-gray-400 pt-10">
+                  <LoaderCircle className="animate-spin mr-2"/> Buscando melhor rota...
+              </div>
+            ) : showTripDetails ? (
+              <TripDetailsCard tripInfo={tripInfo} onClose={resetState} />
+            ) : (
+              <SearchSection 
+                onPlaceSelect={handlePlaceSelect}
+                destination={selectedPlace}
+              />
+            )}
+          </div>
       </div>
     </div>
   );
