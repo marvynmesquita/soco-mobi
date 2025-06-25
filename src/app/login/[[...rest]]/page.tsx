@@ -9,6 +9,7 @@ import Link from "next/link"
 import Logo from "../../../logo.svg"
 
 export default function LoginPage() {
+  
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Image */}
@@ -36,7 +37,7 @@ export default function LoginPage() {
             {/* Brand Section */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16">
-                <Logo className="w-16 h-16"/>
+                <Logo className="w-16 h-16" />
               </div>
               <h1 className="text-3xl font-bold text-white mb-2">Olá, de novo!</h1>
               <p className="text-teal-100">Faça login para continuarmos</p>

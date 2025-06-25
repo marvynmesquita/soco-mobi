@@ -24,8 +24,8 @@ const onboardingSlides = [
     {
         id : 2,
         icon : logo,
-        title : "Capture momentos incríveis",
-        description : "Registre suas aventuras e compartilhe com amigos",
+        title : "Conheça Saquarema",
+        description : "Trilhe seus caminhos e descubra a cidade",
         image : "/images/onboarding/slide2.png"
     },
     {
