@@ -13,31 +13,23 @@ export default function DashboardPage() {
   const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [bounds, setBounds] = useState<google.maps.LatLngBounds | null>(null);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [showTripDetails, setShowTripDetails] = useState(false);
   const [tripInfo, setTripInfo] = useState<any>(null);
   const [tripSegment, setTripSegment] = useState<google.maps.LatLngLiteral[] | undefined>(undefined);
 
-  const geocoding = useMapsLibrary('geocoding');
+  const geometry = useMapsLibrary('geometry');
   const core = useMapsLibrary('core');
-  const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
 
-  useEffect(() => { if (geocoding) setGeocoder(new geocoding.Geocoder()); }, [geocoding]);
-  
   useEffect(() => {
-    if (navigator.geolocation && core && !userLocation) {
+    if (navigator.geolocation && !userLocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         const newLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
         setUserLocation(newLocation);
-        if (!bounds) {
-          const newBounds = new core.LatLngBounds();
-          newBounds.extend(newLocation);
-          setBounds(newBounds);
-        }
       });
     }
-  }, [bounds, core, userLocation]);
+  }, [userLocation]);
 
   const resetState = useCallback(() => {
     setShowTripDetails(false);
@@ -45,22 +37,17 @@ export default function DashboardPage() {
     setTripSegment(undefined);
     setSelectedPlace(null);
     setBounds(null);
-    if (userLocation && core) {
-      const newBounds = new core.LatLngBounds();
-      newBounds.extend(userLocation);
-      setBounds(newBounds);
-    }
-  }, [userLocation, core]);
+  }, []);
 
   const handlePlaceSelect = useCallback(async (place: Place | null) => {
     resetState();
     setSelectedPlace(place);
 
-    if (userLocation && place?.geometry?.location && typeof place.geometry.location.lat === 'function' && core) {
+    if (userLocation && place?.geometry?.location && typeof place.geometry.location.lat === 'function' && core && geometry) {
       const lat = place.geometry.location.lat();
       const lng = place.geometry.location.lng();
       const toAddress = place.formatted_address || `${lat},${lng}`;
-      
+
       setIsLoading(true);
 
       try {
@@ -71,41 +58,34 @@ export default function DashboardPage() {
         if (!tripResponse.ok) throw new Error(`Planner API failed: ${tripResponse.statusText}`);
         const tripData = await tripResponse.json();
         
-        if (tripData.plan?.line?.number) {
-          const plan = tripData.plan;
-          setTripInfo(plan);
+        // A resposta agora contém o 'plan' completo
+        setTripInfo(tripData.plan);
+
+        if (tripData.plan?.line?.polyline) {
+          const decodedPath = geometry.encoding.decodePath(tripData.plan.line.polyline);
+          setTripSegment(decodedPath);
           
-          const routeResponse = await fetch(`${backendUrl}/lines/${plan.line.number}/route`);
-          if (!routeResponse.ok) throw new Error(`Route API failed: ${routeResponse.statusText}`);
-          const routeData = await routeResponse.json();
-
-          if (routeData.stops && plan.boardingStop?.name && plan.disembarkingStop?.name) {
-              const startIndex = routeData.stops.findIndex(s => s.name === plan.boardingStop.name);
-              const endIndex = routeData.stops.findIndex(s => s.name === plan.disembarkingStop.name);
-
-              if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-                  const segment = routeData.stops.slice(startIndex, endIndex + 1).map(s => ({ lat: s.latitude, lng: s.longitude }));
-                  setTripSegment(segment);
-
-                  const newBounds = new core.LatLngBounds();
-                  newBounds.extend(userLocation); // Ponto de partida do usuário
-                  newBounds.extend({ lat, lng });   // Destino final
-                  setBounds(newBounds);
-              }
-          }
+          const newBounds = new core.LatLngBounds();
+          newBounds.extend(userLocation);
+          newBounds.extend({ lat, lng });
+          decodedPath.forEach(point => newBounds.extend(point));
+          setBounds(newBounds);
         } else {
-          setTripInfo({ message: tripData.message || "Nenhuma rota encontrada." });
+           const newBounds = new core.LatLngBounds();
+           newBounds.extend(userLocation);
+           newBounds.extend({ lat, lng });
+           setBounds(newBounds);
         }
         setShowTripDetails(true);
       } catch (error) {
         console.error("Erro ao buscar plano de viagem:", error);
-        setTripInfo({ error: "Não foi possível carregar os detalhes." });
+        setTripInfo({ error: "Não foi possível carregar os detalhes da viagem." });
         setShowTripDetails(true);
       } finally {
         setIsLoading(false);
       }
     }
-  }, [userLocation, core, resetState]);
+  }, [userLocation, core, geometry, resetState]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -126,7 +106,7 @@ export default function DashboardPage() {
             </div>
         </header>
       </div>
-      
+
       <div className="flex-1 w-full bg-white dark:bg-gray-800 overflow-y-auto p-4 border-t-2 border-gray-200 dark:border-gray-700">
           <div className="max-w-md mx-auto">
             {isLoading ? (
@@ -136,7 +116,7 @@ export default function DashboardPage() {
             ) : showTripDetails ? (
               <TripDetailsCard tripInfo={tripInfo} onClose={resetState} />
             ) : (
-              <SearchSection 
+              <SearchSection
                 onPlaceSelect={handlePlaceSelect}
                 destination={selectedPlace}
               />

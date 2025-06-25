@@ -100,8 +100,17 @@ export default function MapComponent({
       : null;
 
   const finalDestinationLocation = selectedPlace?.geometry?.location;
+  
+  // NOVO EFEITO: Centraliza o mapa na localização do usuário ao carregar
+  useEffect(() => {
+    if (map && userLocation && !boundsToFit) {
+        map.panTo(userLocation);
+        map.setZoom(15); // Define um nível de zoom razoável
+    }
+  }, [map, userLocation, boundsToFit]);
 
-  // Ajuste da viewport com base nos bounds calculados
+
+  // Efeito existente: Ajusta a viewport para a rota completa APÓS a busca
   useEffect(() => {
     if (map && boundsToFit) {
       const padding = {

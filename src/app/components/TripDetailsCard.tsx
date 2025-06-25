@@ -1,6 +1,6 @@
 'use client';
 
-import { Bus, Clock, MapPin, Search, Footprints, ChevronsRight } from 'lucide-react';
+import { Bus, Clock, MapPin, Search, Footprints } from 'lucide-react';
 
 interface TripDetailsCardProps {
   tripInfo: any;
@@ -8,7 +8,8 @@ interface TripDetailsCardProps {
 }
 
 export default function TripDetailsCard({ tripInfo, onClose }: TripDetailsCardProps) {
-  const hasValidPlan = tripInfo && tripInfo.line && tripInfo.boardingStop && tripInfo.instructions;
+  // Verificação mais robusta, procurando por 'line' para um plano válido
+  const hasValidPlan = tripInfo && tripInfo.line;
 
   if (!hasValidPlan) {
     return (
@@ -29,7 +30,7 @@ export default function TripDetailsCard({ tripInfo, onClose }: TripDetailsCardPr
     );
   }
 
-  const { line, boardingStop, disembarkingStop, instructions } = tripInfo;
+  const { line, boardingStop, disembarkingStop } = tripInfo;
 
   return (
     <div className="p-1 flex flex-col justify-between h-full">
@@ -48,7 +49,6 @@ export default function TripDetailsCard({ tripInfo, onClose }: TripDetailsCardPr
                 <div>
                     <p className="font-semibold text-gray-800 dark:text-gray-200">1. Vá para o Ponto de Embarque</p>
                     <p className="text-gray-600 dark:text-gray-400 font-medium">{boardingStop.name}</p>
-                    <p className="text-xs text-gray-500">{instructions.walkToStop}</p>
                 </div>
             </div>
 
@@ -56,18 +56,25 @@ export default function TripDetailsCard({ tripInfo, onClose }: TripDetailsCardPr
                 <Clock className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                 <div>
                     <p className="font-semibold text-gray-800 dark:text-gray-200">2. Previsão no Ponto</p>
-                    <p className="text-gray-600 dark:text-gray-400">{instructions.estimatedBusArrival}</p>
-                    <p className="text-xs text-gray-500">{instructions.leaveAt}</p>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">
+                      {boardingStop.estimatedArrivalTime 
+                        ? `Chegada estimada às ${boardingStop.estimatedArrivalTime}`
+                        : "Horário não disponível"}
+                    </p>
                 </div>
             </div>
             
-            {/* NOVO: Indicação do Ponto de Desembarque */}
             {disembarkingStop && (
               <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-red-500 mt-1 flex-shrink-0" />
                   <div>
                       <p className="font-semibold text-gray-800 dark:text-gray-200">3. Desembarque em</p>
                       <p className="text-gray-600 dark:text-gray-400 font-medium">{disembarkingStop.name}</p>
+                      {disembarkingStop.estimatedArrivalTime && (
+                        <p className="text-xs text-gray-500">
+                          Chegada estimada ao destino às {disembarkingStop.estimatedArrivalTime}
+                        </p>
+                      )}
                   </div>
               </div>
             )}
