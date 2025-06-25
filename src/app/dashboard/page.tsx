@@ -8,6 +8,7 @@ import SearchSection from "../components/SearchSection";
 import TripDetailsCard from "../components/TripDetailsCard";
 import { LoaderCircle } from "lucide-react";
 import type { Place } from "@googlemaps/google-maps-services-js";
+import { TripPlan } from "../types"; // Importa o nosso novo tipo
 
 export default function DashboardPage() {
   const [userLocation, setUserLocation] = useState<google.maps.LatLngLiteral | null>(null);
@@ -16,7 +17,7 @@ export default function DashboardPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showTripDetails, setShowTripDetails] = useState(false);
-  const [tripInfo, setTripInfo] = useState<any>(null);
+  const [tripInfo, setTripInfo] = useState<TripPlan | null>(null); // USA O TIPO CORRETO
   const [tripSegment, setTripSegment] = useState<google.maps.LatLngLiteral[] | undefined>(undefined);
 
   const geometry = useMapsLibrary('geometry');
@@ -58,7 +59,6 @@ export default function DashboardPage() {
         if (!tripResponse.ok) throw new Error(`Planner API failed: ${tripResponse.statusText}`);
         const tripData = await tripResponse.json();
         
-        // A resposta agora contém o 'plan' completo
         setTripInfo(tripData.plan);
 
         if (tripData.plan?.line?.polyline) {
@@ -79,7 +79,7 @@ export default function DashboardPage() {
         setShowTripDetails(true);
       } catch (error) {
         console.error("Erro ao buscar plano de viagem:", error);
-        setTripInfo({ error: "Não foi possível carregar os detalhes da viagem." });
+        setTripInfo({ error: "Não foi possível carregar os detalhes da viagem." } as TripPlan);
         setShowTripDetails(true);
       } finally {
         setIsLoading(false);

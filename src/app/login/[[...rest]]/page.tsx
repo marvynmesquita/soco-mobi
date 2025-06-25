@@ -2,7 +2,7 @@
 
 import { SignIn } from "@clerk/nextjs"
 import Image from "next/image"
-import { ArrowLeft, Waves } from "lucide-react"
+import { ArrowLeft } from "lucide-react" // Remove 'Waves'
 import { Button } from "../../components/ui/button"
 import Link from "next/link"
 

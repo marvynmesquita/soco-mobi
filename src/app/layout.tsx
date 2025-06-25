@@ -3,21 +3,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "./components/theme-provider";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs';
+import { ClerkProvider } from '@clerk/nextjs'; // Apenas o provider é necessário aqui
 
 const inter = Inter({ subsets: ["latin"] });
 
 import { ptBR, enUS } from "@clerk/localizations";
 import MapsProvider from "./components/MapsProvider";
 
-const userLanguage = navigator.language || "pt-BR";
+const userLanguage = typeof navigator !== 'undefined' ? navigator.language || "pt-BR" : "pt-BR";
 
 const localization = userLanguage.startsWith("pt") ? ptBR : enUS;
 

@@ -1,13 +1,10 @@
 'use client';
 
-import {
-  Map,
-  AdvancedMarker,
-  useMap,
-} from '@vis.gl/react-google-maps';
-import type { Place } from '@googlemaps/google-maps-services-js';
+import { Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps';
+import type { Place } from "@googlemaps/google-maps-services-js";
 import { MapPin, Bus, Footprints } from 'lucide-react';
 import { useEffect } from 'react';
+import { TripPlan } from '../types'; // Importa o tipo
 
 // Componente DirectionsRenderer para rotas a pé
 const DirectionsRenderer = ({
@@ -67,7 +64,7 @@ interface MapComponentProps {
   userLocation: google.maps.LatLngLiteral | null;
   className?: string;
   tripSegment?: google.maps.LatLngLiteral[];
-  tripInfo?: any;
+  tripInfo: TripPlan | null; // USA O TIPO CORRETO
   boundsToFit?: google.maps.LatLngBounds | null;
 }
 

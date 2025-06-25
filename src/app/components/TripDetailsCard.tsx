@@ -1,11 +1,13 @@
 'use client';
 
 import { Bus, Clock, MapPin, Search, Footprints } from 'lucide-react';
+import { TripPlan } from '../types'; // Importa o tipo
 
 interface TripDetailsCardProps {
-  tripInfo: any;
+  tripInfo: TripPlan | null; // USA O TIPO CORRETO
   onClose: () => void;
 }
+
 
 export default function TripDetailsCard({ tripInfo, onClose }: TripDetailsCardProps) {
   // Verificação mais robusta, procurando por 'line' para um plano válido
